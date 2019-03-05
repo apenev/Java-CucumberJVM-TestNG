@@ -47,8 +47,8 @@ public class StepDefinitions {
 
     @After
     public void tearDown(Scenario scenario){
+        SauceUtils.UpdateResults(driver, !scenario.isFailed());
         driver.quit();
-        SauceUtils.UpdateResults(username, accesskey, !scenario.isFailed(), sessionId);
 
     }
 
@@ -84,11 +84,12 @@ public class StepDefinitions {
         driver.findElement(By.className("login-button")).click();
     }
 
-    @When("^I add (\\d+) items? to the cart$")
-    public void add_items_to_cart(int items){
+    @When("^I add (\\d) items? to the cart$")
+    public void add_items_to_cart(int items) {
+        SauceUtils.addNote(driver, "Adding " + Integer.toString(items) + " item to cart");
         By itemButton = By.className("add-to-cart-button");
 
-        for (int i = 0; i < items; i++){
+        for (int i = 0; i < items; i++) {
             wait.until(ExpectedConditions.elementToBeClickable(driver.findElement(itemButton)));
             driver.findElement(itemButton).click();
         }
@@ -96,15 +97,17 @@ public class StepDefinitions {
 
     @And("I remove an item")
     public void remove_an_item(){
+        SauceUtils.addNote(driver,"Removing 1 item from the cart");
         By itemButton = By.className("remove-from-cart-button");
 
         wait.until(ExpectedConditions.elementToBeClickable(driver.findElement(itemButton)));
         driver.findElement(itemButton).click();
     }
 
-    @Then("I have (\\d) items? in my cart")
-    public void one_item_in_cart(Integer items){
-        String expected_items = items.toString();
+    @Then("^I have (\\d) items? in my cart$")
+    public void one_item_in_cart(int items){
+        String expected_items = Integer.toString(items);
+        SauceUtils.addNote(driver,"I have " + expected_items + " in my cart");
 
         By itemsInCart = By.className("shopping_cart_badge");
 
