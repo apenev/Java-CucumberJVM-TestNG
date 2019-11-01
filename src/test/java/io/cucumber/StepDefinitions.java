@@ -7,10 +7,12 @@ import cucumber.api.java.en.And;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
+import org.openqa.selenium.MutableCapabilities;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.testng.Assert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.MutableCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -28,17 +30,19 @@ public class StepDefinitions {
     final String accesskey = System.getenv("SAUCE_ACCESS_KEY");
 
     final String BASE_URL = "https://www.saucedemo.com";
-    final String SAUCE_REMOTE_URL = "https://ondemand.saucelabs.com/wd/hub";
+    final String SAUCE_REMOTE_URL = "https://" + username + ":" + accesskey +  "@ondemand.saucelabs.com/wd/hub";
 
     @Before
     public void setUp(Scenario scenario) throws MalformedURLException {
-        DesiredCapabilities caps = DesiredCapabilities.firefox();
+        MutableCapabilities caps = new ChromeOptions();
 
-        caps.setCapability("version", "60.0");
-        caps.setCapability("platform", "Windows 10");
-        caps.setCapability("username", username);
-        caps.setCapability("accessKey", accesskey);
-        caps.setCapability("name", scenario.getName());
+        MutableCapabilities sauceOpts = new MutableCapabilities();
+
+        sauceOpts.setCapability("version", "latest");
+        sauceOpts.setCapability("platform", "Windows 10");
+        sauceOpts.setCapability("name", scenario.getName());
+
+        caps.setCapability("sauce:options", sauceOpts);
 
         driver = new RemoteWebDriver(new URL(SAUCE_REMOTE_URL), caps);
         sessionId = ((RemoteWebDriver)driver).getSessionId().toString();
@@ -70,7 +74,7 @@ public class StepDefinitions {
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("password")));
         driver.findElement(By.id("password")).sendKeys("secret_sauce");
 
-        driver.findElement(By.className("login-button")).click();
+        driver.findElement(By.className("btn_action")).click();
     }
 
     @When("I login as an invalid user")
@@ -81,13 +85,13 @@ public class StepDefinitions {
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("password")));
         driver.findElement(By.id("password")).sendKeys("secret_sauce");
 
-        driver.findElement(By.className("login-button")).click();
+        driver.findElement(By.className("btn_action")).click();
     }
 
     @When("^I add (\\d) items? to the cart$")
     public void add_items_to_cart(int items) {
         SauceUtils.addNote(driver, "Adding " + Integer.toString(items) + " item to cart");
-        By itemButton = By.className("add-to-cart-button");
+        By itemButton = By.className("btn_primary");
 
         for (int i = 0; i < items; i++) {
             wait.until(ExpectedConditions.elementToBeClickable(driver.findElement(itemButton)));
@@ -98,7 +102,7 @@ public class StepDefinitions {
     @And("I remove an item")
     public void remove_an_item(){
         SauceUtils.addNote(driver,"Removing 1 item from the cart");
-        By itemButton = By.className("remove-from-cart-button");
+        By itemButton = By.className("btn_secondary");
 
         wait.until(ExpectedConditions.elementToBeClickable(driver.findElement(itemButton)));
         driver.findElement(itemButton).click();
